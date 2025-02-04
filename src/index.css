@@ -1,1 +1,67 @@
 @import "tailwindcss";
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --leva-sizes-rootWidth: 340px;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+}
+
+body {
+  margin: 0;
+  background-color: #faaca8;
+  background-image: linear-gradient(19deg, #faaca8 0%, #ddd6f3 100%);
+}
+
+body.greenScreen {
+  background-color: #00ff00;
+  background-image: none;
+}
+
+.btn-actives{
+  background-color: #202124;
+  transition: all .4s ease-in-out;
+  cursor: pointer;
+}
+
+.btn-actives:hover{
+  background-color: #202124;
+  border: .1rem solid white;
+  transform: scale(1.05);
+
+}
+
+.btn-inactives{
+  border: .1rem solid white;
+  background-color: transparent;
+  transition: all .4s ease-in-out;
+  cursor: pointer;
+
+}
+
+.btn-inactives:hover{
+  border: .1rem solid transparent;
+  background-color: #202124;
+}
+
+.animate-record{
+  animation: beem .4s infinite;
+}
+
+@keyframes beem {
+  0%{
+    transform: scale(1.05);
+  }
+
+  100%{
+    transform: scale(1);
+
+  }
+}

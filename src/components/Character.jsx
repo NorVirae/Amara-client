@@ -6,32 +6,62 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useAnimations, useGLTF } from '@react-three/drei'
 import { button, useControls } from 'leva'
 import * as THREE from "three";
-import { facialExpressions, gestures, lipsyncData } from '../utils/constants';
+import { facialBones, facialExpressions, gestures, validAnimations, validFacials, } from '../utils/constants';
 import { useFrame } from '@react-three/fiber';
+import { useMessagingAPI } from '../hooks/useMessage';
+
 
 // face configs
 
 
 export function Character(props) {
-    const { nodes, materials, scene } = useGLTF('public/models/679f5cb66914737cb84fb910.glb')
-    const { animations } = useGLTF('public/models/animations.glb')
-    const group = useRef()
+    const { nodes, materials, scene } = useGLTF(
+        "/models/679f5cb66914737cb84fb910.glb"
+    );
+    const { animations } = useGLTF("/models/animations.glb");
+    const group = useRef();
     const { actions, mixer } = useAnimations(animations, group);
-    const [animation, setAnimation] = useState("Idle")
+    const [animation, setAnimation] = useState(
+        animations.find((a) => a.name === "Idle") ? "Idle" : animations[0].name // Check if Idle animation exists otherwise use first animation
+    );
+    const [blink, setBlink] = useState(false);
+    const [winkLeft, setWinkLeft] = useState(false);
+    const [winkRight, setWinkRight] = useState(false);
+    const [facialExpression, setFacialExpression] = useState("");
+    const [audio, setAudio] = useState();
+    const { message, onMessagePlayed, chat } = useMessagingAPI();
     const [configMode, setConfigMode] = useState(false)
-    const [lipsync, setLipsync] = useState(lipsyncData)
 
-    const [facialExpression, setFacialExpression] = useState("smile")
+    const [lipsync, setLipsync] = useState();
+
+    //populates animation field 
+    const setValidAnimation = (animation) => {
+        if (!validAnimations.includes(animation)) {
+            setAnimation("Idle");
+            return
+        }
+        setAnimation(animation);
+
+    }
+
+    // populates fcial expression field
+    const setValidFacialAnimation = (facialAnimation) => {
+        if (!validFacials.includes(facialAnimation)) {
+            setFacialExpression("default");
+            return
+        }
+        setFacialExpression(facialAnimation);
+
+    }
+
     // plays Animation clip if not null
     useEffect(() => {
         // nodes.Wolf3D_Head.morphTargetDictionary
-        console.log(animation, actions)
-        if (actions) {
-            actions[animation]
-                .reset()
-                .fadeIn(mixer.stats.actions.inUse === 0 ? 0 : 0.5)
-                .play();
-        }
+        console.log(animation, "ANIMATION")
+        actions[animation]
+            .reset()
+            .fadeIn(mixer.stats.actions.inUse === 0 ? 0 : 0.5)
+            .play();
 
         return () => actions[animation].fadeOut(0.5);
     }, [animation]);
@@ -52,20 +82,59 @@ export function Character(props) {
         audio.onended = onMessagePlayed;
     }, [message]);
 
-    useFrame(() => {
-        !configMode && Object.keys(nodes.EyeLeft.morphTargetDictionary).forEach((key) => {
-            const mapping = facialExpressions[facialExpression];
-            if (key === "eyeBlinkLeft" || key === "eyeBlinkRight") {
-                return; // eyes wink/blink are handled separately
-            }
-            if (mapping && mapping[key]) {
-                lerpMorphTarget(key, mapping[key], 0.1);
-            } else {
-                lerpMorphTarget(key, 0, 0.1);
+    // Function to execute animation depending on the bone or node
+    const lerpMorphTarget = (target, value, speed = 0.1) => {
+        scene.traverse((child) => {
+            if (child.isSkinnedMesh && child.morphTargetDictionary) {
+                const index = child.morphTargetDictionary[target];
+                if (
+                    index === undefined ||
+                    child.morphTargetInfluences[index] === undefined
+                ) {
+                    return;
+                }
+                child.morphTargetInfluences[index] = THREE.MathUtils.lerp(
+                    child.morphTargetInfluences[index],
+                    value,
+                    speed
+                );
+
+                if (!configMode) {
+                    try {
+                        set({
+                            [target]: value,
+                        });
+                    } catch (e) { }
+                }
             }
         });
+    };
 
-        if (lipsync) {
+    //Handle all animation play
+    useFrame(() => {
+        !configMode &&
+            Object.keys(nodes.EyeLeft.morphTargetDictionary).forEach((key) => {
+                const mapping = facialExpressions[facialExpression];
+                if (key === "eyeBlinkLeft" || key === "eyeBlinkRight") {
+                    return; // eyes wink/blink are handled separately
+                }
+                if (mapping && mapping[key]) {
+                    lerpMorphTarget(key, mapping[key], 0.1);
+                } else {
+                    lerpMorphTarget(key, 0, 0.1);
+                }
+            });
+
+        lerpMorphTarget("eyeBlinkLeft", blink || winkLeft ? 1 : 0, 0.5);
+        lerpMorphTarget("eyeBlinkRight", blink || winkRight ? 1 : 0, 0.5);
+
+        // LIPSYNC
+        if (configMode) {
+            return;
+        }
+
+        const appliedMorphTargets = [];
+        if (message && lipsync) {
             const currentAudioTime = audio.currentTime;
             for (let i = 0; i < lipsync.mouthCues.length; i++) {
                 const mouthCue = lipsync.mouthCues[i];
@@ -79,7 +148,15 @@ export function Character(props) {
                 }
             }
         }
-    })
+
+        Object.values(facialBones).forEach((value) => {
+            if (appliedMorphTargets.includes(value)) {
+                return;
+            }
+            lerpMorphTarget(value, 0, 0.1);
+        });
+
+    });
 
     //handles all facial actions
     useControls("FacialExpressions", {
@@ -102,15 +179,13 @@ export function Character(props) {
             onChange: (value) => setFacialExpression(value),
         },
         enableSetupMode: button(() => {
-            setConfigMode(true)
+            setConfigMode(true);
         }),
         disableSetupMode: button(() => {
-            setConfigMode(false)
-
+            setConfigMode(false);
         }),
         logMorphTargetValues: button(() => {
             const emotionValues = {};
-            console.log(nodes, "NODES")
             Object.keys(nodes.EyeLeft.morphTargetDictionary).forEach((key) => {
                 if (key === "eyeBlinkLeft" || key === "eyeBlinkRight") {
                     return; // eyes wink/blink are handled separately
@@ -127,7 +202,6 @@ export function Character(props) {
         }),
     });
 
-
     const [, set] = useControls("MorphTarget", () =>
         Object.assign(
             {},
@@ -141,9 +215,9 @@ export function Character(props) {
                         ],
                         max: 1,
                         onChange: (val) => {
-                            // if (setupMode) {
-                            lerpMorphTarget(key, val, 1);
-                            // }
+                            if (configMode) {
+                                lerpMorphTarget(key, val, 1);
+                            }
                         },
                     },
                 };
@@ -151,33 +225,21 @@ export function Character(props) {
         )
     );
 
-    // Function to execute animation depending on the bone or node
-    const lerpMorphTarget = (target, value, speed = 0.1) => {
-        scene.traverse((child) => {
-            if (child.isSkinnedMesh && child.morphTargetDictionary) {
-                const index = child.morphTargetDictionary[target];
-                if (
-                    index === undefined ||
-                    child.morphTargetInfluences[index] === undefined
-                ) {
-                    return;
-                }
-                child.morphTargetInfluences[index] = THREE.MathUtils.lerp(
-                    child.morphTargetInfluences[index],
-                    value,
-                    speed
-                );
-
-                // if (!setupMode) {
-                try {
-                    set({
-                        [target]: value,
-                    });
-                } catch (e) { }
-                // }
-            }
-        });
-    };
+    //control Blink
+    useEffect(() => {
+        let blinkTimeout;
+        const nextBlink = () => {
+            blinkTimeout = setTimeout(() => {
+                setBlink(true);
+                setTimeout(() => {
+                    setBlink(false);
+                    nextBlink();
+                }, 200);
+            }, THREE.MathUtils.randInt(1000, 5000));
+        };
+        nextBlink();
+        return () => clearTimeout(blinkTimeout);
+    }, []);
 
     return (
         <group {...props} dispose={null} ref={group}>
@@ -243,4 +305,6 @@ export function Character(props) {
     )
 }
 
-useGLTF.preload('/679f5cb66914737cb84fb910.glb')
+useGLTF.preload('/models/679f5cb66914737cb84fb910.glb')
+useGLTF.preload('/models/animations.glb')
+

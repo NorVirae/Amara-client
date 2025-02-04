@@ -20,34 +20,26 @@ export const gestures = [
     "Talking_2",
     "Talking_3"]
 
-export const lipsyncData = {
-    "metadata": {
-        "soundFile": "C:\\Users\\norbe\\Documents\\AI\\AI Projects\\AlienGirlfriendChatbot\\app\\audio\\out\\ai_voice.wav",
-        "duration": 2.76
-    },
-    "mouthCues": [
-        { "start": 0.00, "end": 0.06, "value": "X" },
-        { "start": 0.06, "end": 0.37, "value": "C" },
-        { "start": 0.37, "end": 0.44, "value": "B" },
-        { "start": 0.44, "end": 0.69, "value": "X" },
-        { "start": 0.69, "end": 0.90, "value": "B" },
-        { "start": 0.90, "end": 1.04, "value": "C" },
-        { "start": 1.04, "end": 1.18, "value": "B" },
-        { "start": 1.18, "end": 1.25, "value": "C" },
-        { "start": 1.25, "end": 1.53, "value": "B" },
-        { "start": 1.53, "end": 1.60, "value": "F" },
-        { "start": 1.60, "end": 1.74, "value": "B" },
-        { "start": 1.74, "end": 1.81, "value": "C" },
-        { "start": 1.81, "end": 1.95, "value": "B" },
-        { "start": 1.95, "end": 2.02, "value": "C" },
-        { "start": 2.02, "end": 2.16, "value": "B" },
-        { "start": 2.16, "end": 2.23, "value": "G" },
-        { "start": 2.23, "end": 2.44, "value": "B" },
-        { "start": 2.44, "end": 2.76, "value": "X" }
-    ]
-}
+export const validAnimations = ["Angry",
+    "Crying",
+    "Laughing",
+    "Rumba",
+    "Idle",
+    "Talking_1",
+    "Talking_2",
+    "Talking_3",
+    "Terrified"]
+
+export const validFacials = ["default",
+    "smile",
+    "funnyFace",
+    "sad",
+    "surprised",
+    "angry",
+    "crazy",]
 
 
+// face configs
 export const facialExpressions = {
     default: {},
     smile: {
@@ -128,3 +120,16 @@ export const facialExpressions = {
         tongueOut: 0.9618479575523053,
     },
 };
+
+export const facialBones = {
+    A: "viseme_PP",
+    B: "viseme_kk",
+    C: "viseme_I",
+    D: "viseme_AA",
+    E: "viseme_O",
+    F: "viseme_U",
+    G: "viseme_FF",
+    H: "viseme_TH",
+    X: "viseme_PP",
+};
+

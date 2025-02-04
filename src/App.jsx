@@ -5,6 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber"
 
 import EnvironmentParent from './components/EnvironmentParent';
 import { Leva } from 'leva';
+import ChatUI from './pages/ChatUI';
 
 
 
@@ -13,7 +14,8 @@ export default function App() {
 
   return (
     <section className='app'>
-
+      <Leva hidden={true} />
+      <ChatUI/>
       <Canvas
         shadows
         camera={{
