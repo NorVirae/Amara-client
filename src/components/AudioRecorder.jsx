@@ -10,7 +10,7 @@ const AudioRecorder = ({ setTransactionHash }) => {
     let [stream, setStream] = useState(null)
     let [recorder, setRecorder] = useState(null)
     const [base64Webm, setBase64Webm] = useState(null)
-    const { chat } = useMessagingAPI();
+    const { sendMessage } = useMessagingAPI();
 
     // Helper function: Convert Blob to Base64
     const blobToBase64 = (blob) => {
@@ -63,7 +63,7 @@ const AudioRecorder = ({ setTransactionHash }) => {
             const localBase64Webm = await blobToBase64(blob);
             setBase64Webm(localBase64Webm)
             console.log(localBase64Webm)
-            chat({ audioString: localBase64Webm, textInput: null })
+            sendMessage({ audioString: localBase64Webm, textInput: null })
             setTransactionHash(null)
 
             // setEnableTextBox(false)

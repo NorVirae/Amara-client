@@ -29,7 +29,7 @@ export function Character(props) {
     const [winkRight, setWinkRight] = useState(false);
     const [facialExpression, setFacialExpression] = useState("");
     const [audio, setAudio] = useState();
-    const { message, onMessagePlayed, chat } = useMessagingAPI();
+    const { messageChat, onMessagePlayed, sendMessage } = useMessagingAPI();
     const [configMode, setConfigMode] = useState(false)
 
     const [lipsync, setLipsync] = useState();
@@ -68,19 +68,19 @@ export function Character(props) {
 
     // handles message input and plays sound
     useEffect(() => {
-        console.log(message, "message")
-        if (!message) {
+        console.log(messageChat, "message")
+        if (!messageChat) {
             setAnimation("Idle");
             return;
         }
-        setValidAnimation(message.animation);
-        setValidFacialAnimation(message.facialExpression);
-        setLipsync(message.lipsync);
-        const audio = new Audio("data:audio/mp3;base64," + message.audio);
+        setValidAnimation(messageChat.animation);
+        setValidFacialAnimation(messageChat.facialExpression);
+        setLipsync(messageChat.lipsync);
+        const audio = new Audio("data:audio/mp3;base64," + messageChat.audio);
         audio.play();
         setAudio(audio);
         audio.onended = onMessagePlayed;
-    }, [message]);
+    }, [messageChat]);
 
     // Function to execute animation depending on the bone or node
     const lerpMorphTarget = (target, value, speed = 0.1) => {
@@ -134,7 +134,7 @@ export function Character(props) {
         }
 
         const appliedMorphTargets = [];
-        if (message && lipsync) {
+        if (messageChat && lipsync) {
             const currentAudioTime = audio.currentTime;
             for (let i = 0; i < lipsync.mouthCues.length; i++) {
                 const mouthCue = lipsync.mouthCues[i];
@@ -160,7 +160,7 @@ export function Character(props) {
 
     //handles all facial actions
     useControls("FacialExpressions", {
-        chat: button(() => chat()),
+        sendMessage: button(() => sendMessage()),
         winkLeft: button(() => {
             setWinkLeft(true);
             setTimeout(() => setWinkLeft(false), 300);

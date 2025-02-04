@@ -1,11 +1,12 @@
+import axios from "axios";
 import { createContext, useContext, useEffect, useState } from "react";
 
-const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const backendUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
 
 const MessageContext = createContext();
 
 export const MessageProvider = ({ children }) => {
-  const message = async ({ audioString, textInput }) => {
+  const sendMessage = async ({ audioString, textInput }) => {
     setLoading(true);
     try {
       console.log(textInput)
@@ -15,21 +16,20 @@ export const MessageProvider = ({ children }) => {
         url: `${backendUrl}/chat`,
         data: { audio: audioString, textInput }
       })
+      console.log(data, "DATA")
 
       setLoading(false);
-      const messages = (await data.json()).messages;
+      const messages = data.data.messages;
       setMessages(messages);
       setMessageChat(messages[0]);
     } catch (err) {
       setLoading(false);
-      const messages = err.response.message.messages;
+      console.log(err)
+      const messages = err.response.messages;
       setMessages(messages);
       setMessageChat(messages[0]);
     }
 
-    const messages = (await data.json()).messages;
-    setMessages(messages);
-    setMessageChat(messages[0]);
   };
   const [messageChat, setMessageChat] = useState();
   const [messages, setMessages] = useState([])
@@ -46,8 +46,8 @@ export const MessageProvider = ({ children }) => {
   return (
     <MessageContext.Provider
       value={{
-        chat: message,
-        message,
+        sendMessage,
+        messageChat,
         onMessagePlayed,
         loading,
         cameraZoomed,
@@ -62,7 +62,7 @@ export const MessageProvider = ({ children }) => {
 export const useMessagingAPI = () => {
   const context = useContext(MessageContext);
   if (!context) {
-    throw new Error("useChat must be used within a ChatProvider");
+    throw new Error("useMessagingAPI must be used within a ChatProvider");
   }
   return context;
 };

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMessagingAPI } from "../hooks/useMessage";
+import { Text } from "@react-three/drei";
 
 const RingLoader = (props) => {
     const { loading } = useMessagingAPI();
