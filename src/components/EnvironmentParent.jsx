@@ -23,7 +23,7 @@ const EnvironmentParent = () => {
 
     useEffect(() => {
         if (cameraControls.current) {
-            cameraControls.current.setLookAt(0, 1, 1.5, 0, 0.5, 0, true);
+            cameraControls.current.setLookAt(-0.2, 0.7, 0.7, 0, 0.5, 0, true);
         }
         let timeout = setTimeout(() => {
             setCameraZoomed(true)
@@ -44,7 +44,7 @@ const EnvironmentParent = () => {
             <Sphere position={[2, 4, -8]} scale={0.9} />
             <Sphere position={[-2, 2, -8]} scale={0.8} />
             <Sky inclination={0.52} scale={20} />
-            <RingLoader position-y={1.75} position-x={-0.02}  />
+            {/* <RingLoader position-y={1.75} position-x={-0.02}  /> */}
             <Character scale={1} position={[0, -0.9, 0]} rotation={[0, 0, 0]} />
             <ContactShadows scale={2} opacity={0.7} />
         </>

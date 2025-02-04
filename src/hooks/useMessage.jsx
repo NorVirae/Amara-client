@@ -7,8 +7,8 @@ const MessageContext = createContext();
 
 export const MessageProvider = ({ children }) => {
   const sendMessage = async ({ audioString, textInput }) => {
-    setLoading(true);
     try {
+      setLoading(true);
       console.log(textInput)
 
       const data = await axios({
@@ -19,14 +19,21 @@ export const MessageProvider = ({ children }) => {
       console.log(data, "DATA")
 
       setLoading(false);
+
       const messages = data.data.messages;
       setMessages(messages);
+      setTalking(true)
       setMessageChat(messages[0]);
+
     } catch (err) {
+
       setLoading(false);
+      setTalking(false)
+
       console.log(err)
       const messages = err.response.messages;
       setMessages(messages);
+
       setMessageChat(messages[0]);
     }
 
@@ -35,12 +42,18 @@ export const MessageProvider = ({ children }) => {
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(false);
   const [cameraZoomed, setCameraZoomed] = useState(true);
+  const [talking, setTalking] = useState(false)
   const onMessagePlayed = () => {
     setMessages((messages) => {
       let newMessage = messages.slice(1)
       setMessageChat(newMessage[0])
+      if (messages.length <= 1) {
+        console.log(messages.length)
+        setTalking(false)
+      }
       return newMessage
     });
+
   };
 
   return (
@@ -52,6 +65,8 @@ export const MessageProvider = ({ children }) => {
         loading,
         cameraZoomed,
         setCameraZoomed,
+        talking,
+        setTalking
       }}
     >
       {children}
@@ -62,7 +77,7 @@ export const MessageProvider = ({ children }) => {
 export const useMessagingAPI = () => {
   const context = useContext(MessageContext);
   if (!context) {
-    throw new Error("useMessagingAPI must be used within a ChatProvider");
+    throw new Error("useMessagingAPI must be used within a MessageProvider");
   }
   return context;
 };

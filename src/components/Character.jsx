@@ -29,7 +29,7 @@ export function Character(props) {
     const [winkRight, setWinkRight] = useState(false);
     const [facialExpression, setFacialExpression] = useState("");
     const [audio, setAudio] = useState();
-    const { messageChat, onMessagePlayed, sendMessage } = useMessagingAPI();
+    const { messageChat, onMessagePlayed, sendMessage, setTalking } = useMessagingAPI();
     const [configMode, setConfigMode] = useState(false)
 
     const [lipsync, setLipsync] = useState();
